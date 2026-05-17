@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>我的待办清单 · 标签优先级版</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e3f0ff 0%, #e9e2ff 100%);
+      font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      margin: 0;
+    }
+
+    .card {
+      max-width: 640px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: #ffffff;
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.2), 0 4px 10px rgba(79, 70, 229, 0.08);
+      padding: 2rem 1.8rem;
+      transition: all 0.2s ease;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.8rem;
+      }
+      .card {
+        padding: 1.8rem 1.2rem;
+        border-radius: 2rem;
+      }
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: #1e1b4b;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.2rem;
+      letter-spacing: -0.5px;
+    }
+
+    .title-icon {
+      font-size: 2.2rem;
+      display: inline-block;
+      filter: drop-shadow(0 4px 4px rgba(99, 102, 241, 0.3));
+    }
+
+    .sub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 1.2rem 0 1.5rem;
+      color: #3730a3;
+      font-weight: 500;
+      background: #f0ebff;
+      padding: 0.7rem 1.2rem;
+      border-radius: 1.8rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 1.2rem;
+      font-size: 0.95rem;
+    }
+
+    .stats div {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .badge {
+      background: white;
+      border-radius: 2rem;
+      padding: 0.25rem 0.9rem;
+      font-weight: 600;
+      color: #4338ca;
+      box-shadow: 0 2px 6px rgba(99,102,241,0.25);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0.7rem;
+      margin-bottom: 0.8rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .task-input {
+      flex: 2;
+      min-width: 200px;
+      background: #f5f3ff;
+      border: 2px solid #ddd6fe;
+      border-radius: 2.5rem;
+      padding: 0.9rem 1.5rem;
+      font-size: 1rem;
+      outline: none;
+      color: #1e1b4b;
+      font-weight: 500;
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(139, 92, 246, 0.08);
+      background: #ffffff;
+    }
+
+    .task-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+
+    .priority-tags {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .priority-tag {
+      padding: 0.5rem 1.1rem;
+      border-radius: 2rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      background: #f1f5f9;
+      color: #64748b;
+      user-select: none;
+      letter-spacing: 0.3px;
+    }
+
+    .priority-tag:hover {
+      transform: translateY(-1px);
+    }
+
+    .priority-tag.active-high {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: #ef4444;
+      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+    }
+
+    .priority-tag.active-medium {
+      background: #fef3c7;
+      color: #92400e;
+      border-color: #f59e0b;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);
+    }
+
+    .priority-tag.active-low {
+      background: #d1fae5;
+      color: #065f46;
+      border-color: #10b981;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+    }
+
+    .add-btn {
+      background: #6366f1;
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0.9rem 1.8rem;
+      border-radius: 2.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      box-shadow: 0 8px 18px -6px #4f46e5;
+      transition: all 0.2s;
+      border: 1px solid rgba(255,255,255,0.2);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .add-btn:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      box-shadow: 0 12px 22px -8px #3730a3;
+      transform: scale(1.02);
+    }
+
+    .add-btn:active {
+      transform: scale(0.96);
+    }
+
+    .task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 0.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .task-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .task-list::-webkit-scrollbar-track {
+      background: #ede9fe;
+      border-radius: 8px;
+    }
+    .task-list::-webkit-scrollbar-thumb {
+      background: #c4b5fd;
+      border-radius: 8px;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      background: white;
+      padding: 0.9rem 1.2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 6px 14px rgba(99, 102, 241, 0.08);
+      transition: all 0.2s;
+      border: 1px solid #ede9fe;
+      gap: 0.8rem;
+      position: relative;
+    }
+
+    .task-item:hover {
+      box-shadow: 0 12px 22px rgba(79, 70, 229, 0.12);
+      border-color: #c7b8ff;
+      transform: translateY(-1px);
+    }
+
+    .priority-high {
+      border-left: 5px solid #ef4444;
+    }
+    .priority-medium {
+      border-left: 5px solid #f59e0b;
+    }
+    .priority-low {
+      border-left: 5px solid #10b981;
+    }
+
+    .checkbox-custom {
+      appearance: none;
+      -webkit-appearance: none;
+      min-width: 1.5rem;
+      height: 1.5rem;
+      border: 2px solid #b6a0fe;
+      border-radius: 0.7rem;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      flex-shrink: 0;
+    }
+
+    .checkbox-custom:checked {
+      background: #6366f1;
+      border-color: #4f46e5;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+      background-size: 14px;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .task-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+    }
+
+    .task-text {
+      font-size: 1.05rem;
+      color: #1e1b4b;
+      font-weight: 500;
+      word-break: break-word;
+      transition: color 0.2s, text-decoration 0.2s;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .task-item.completed .task-text {
+      text-decoration: line-through;
+      color: #9b96c4;
+      font-weight: 400;
+    }
+
+    .priority-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 1rem;
+      background: #f1f5f9;
+      color: #475569;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .priority-high-badge {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .priority-medium-badge {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .priority-low-badge {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .task-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-shrink: 0;
+    }
+
+    .edit-btn, .delete-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.2rem;
+      height: 2.2rem;
+      border-radius: 2rem;
+      transition: all 0.2s;
+    }
+
+    .edit-btn {
+      color: #9a94c9;
+    }
+    .edit-btn:hover {
+      background: #e9e4ff;
+      color: #4f46e5;
+    }
+
+    .delete-btn {
+      color: #9a94c9;
+    }
+    .delete-btn:hover {
+      background: #fee9f2;
+      color: #d9466f;
+      transform: scale(1.05);
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #7c7aaa;
+      padding: 2.5rem 1rem;
+      font-style: italic;
+      background: #f5f3ff;
+      border-radius: 2rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .empty-icon {
+      font-size: 2.5rem;
+      opacity: 0.7;
+    }
+
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .clear-btn {
+      background: none;
+      border: 1px solid #d4cef0;
+      color: #4c4a8c;
+      padding: 0.5rem 1.4rem;
+      border-radius: 2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(4px);
+    }
+
+    .clear-btn:hover {
+      background: #f0ebff;
+      border-color: #6366f1;
+      color: #3730a3;
+    }
+
+    .danger-btn {
+      border-color: #fecaca;
+      color: #b91c1c;
+      background: rgba(255,255,255,0.8);
+    }
+    .danger-btn:hover {
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #991b1b;
+    }
+
+    .edit-input {
+      flex: 1;
+      border: 2px solid #6366f1;
+      border-radius: 1.5rem;
+      padding: 0.4rem 0.8rem;
+      font-size: 1rem;
+      outline: none;
+      background: #f8f7ff;
+      color: #1e1b4b;
+      font-weight: 500;
+    }
+
+    .edit-priority-tags {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .edit-priority-tag {
+      padding: 0.3rem 0.6rem;
+      border-radius: 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid transparent;
+      background: #f1f5f9;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+
+    @media (max-width: 480px) {
+      .input-row {
+        flex-direction: column;
+      }
+      .task-input, .add-btn {
+        width: 100%;
+      }
+      .task-item {
+        flex-wrap: wrap;
+      }
+      .task-content {
+        order: 1;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>
+      <span class="title-icon">🐼</span> 我的待办清单
+    </h1>
+
+    <div class="sub-header">
+      <div class="stats">
+        <div>✅ <span class="badge" id="completedCount">0</span> 已完成</div>
+        <div>📌 <span class="badge" id="pendingCount">0</span> 未完成</div>
+      </div>
+      <div style="font-size:0.9rem; color:#4c4a8c;">总计 <span id="totalCount" style="font-weight:700;">0</span></div>
+    </div>
+
+    <div class="input-row">
+      <input type="text" class="task-input" id="taskInput" placeholder="今天要做什么？" autocomplete="off" />
+      <button class="add-btn" id="addTaskBtn">➕ 添加任务</button>
+    </div>
+
+    <div class="priority-tags" id="priorityTagsContainer">
+      <span class="priority-tag active-medium" data-priority="high">🔴 高优先级</span>
+      <span class="priority-tag" data-priority="medium">⚡ 中优先级</span>
+      <span class="priority-tag" data-priority="low">🟢 低优先级</span>
+    </div>
+
+    <ul class="task-list" id="taskListContainer">
+      <li class="empty-message">
+        <span class="empty-icon">📋✨</span>
+        <span>还没有任务，添加第一个吧！</span>
+      </li>
+    </ul>
+
+    <div class="action-row">
+      <button class="clear-btn danger-btn" id="clearAllBtn">🗑️ 全部清空</button>
+      <button class="clear-btn" id="clearCompletedBtn">🧹 清空已完成</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- 存储键 ----------
+      const STORAGE_KEY = 'panda_todo_tags_v4';
+
+      // ---------- 数据模型 ----------
+      let tasks = [];
+      let selectedPriority = 'medium'; // 默认中优先级
+
+      // ---------- DOM 元素 ----------
+      const taskInput = document.getElementById('taskInput');
+      const addBtn = document.getElementById('addTaskBtn');
+      const taskListContainer = document.getElementById('taskListContainer');
+      const completedCountSpan = document.getElementById('completedCount');
+      const pendingCountSpan = document.getElementById('pendingCount');
+      const totalCountSpan = document.getElementById('totalCount');
+      const clearCompletedBtn = document.getElementById('clearCompletedBtn');
+      const clearAllBtn = document.getElementById('clearAllBtn');
+      const priorityTags = document.querySelectorAll('.priority-tag');
+
+      // ---------- 优先级标签切换 ----------
+      function updatePriorityTags() {
+        priorityTags.forEach(tag => {
+          const priority = tag.dataset.priority;
+          tag.className = 'priority-tag';
+          if (priority === selectedPriority) {
+            tag.classList.add(`active-${priority}`);
+          }
+        });
+      }
+
+      priorityTags.forEach(tag => {
+        tag.addEventListener('click', () => {
+          selectedPriority = tag.dataset.priority;
+          updatePriorityTags();
+        });
+      });
+
+      // ---------- 工具函数：保存至本地存储 ----------
+      function saveToLocalStorage() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      }
+
+      // ---------- 从本地存储加载 ----------
+      function loadFromLocalStorage() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+              tasks = parsed;
+            } else {
+              tasks = [];
+            }
+          } catch (e) {
+            tasks = [];
+          }
+        } else {
+          tasks = [
+            { id: generateId(), text: '完成项目报告', completed: false, priority: 'high' },
+            { id: generateId(), text: '阅读新书章节', completed: false, priority: 'medium' },
+            { id: generateId(), text: '散步15分钟', completed: true, priority: 'low' },
+          ];
+        }
+      }
+
+      function generateId() {
+        return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+      }
+
+      // ---------- 更新统计数字 ----------
+      function updateStats() {
+        const total = tasks.length;
+        const completed = tasks.filter(task => task.completed).length;
+        const pending = total - completed;
+
+        completedCountSpan.textContent = completed;
+        pendingCountSpan.textContent = pending;
+        totalCountSpan.textContent = total;
+      }
+
+      // ---------- 渲染任务列表 ----------
+      function renderTasks() {
+        if (!taskListContainer) return;
+
+        taskListContainer.innerHTML = '';
+
+        if (tasks.length === 0) {
+          const emptyItem = document.createElement('li');
+          emptyItem.className = 'empty-message';
+          emptyItem.innerHTML = '<span class="empty-icon">📋✨</span><span>任务清单空空的，添加新任务吧～</span>';
+          taskListContainer.appendChild(emptyItem);
+          updateStats();
+          return;
+        }
+
+        tasks.forEach(task => {
+          const taskItem = document.createElement('li');
+          taskItem.className = 'task-item';
+          if (task.completed) {
+            taskItem.classList.add('completed');
+          }
+          taskItem.classList.add(`priority-${task.priority || 'medium'}`);
+          taskItem.dataset.id = task.id;
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'checkbox-custom';
+          checkbox.checked = task.completed;
+          checkbox.setAttribute('aria-label', '标记完成');
+          checkbox.addEventListener('change', (e) => {
+            toggleTaskCompletion(task.id, e.target.checked);
+          });
+
+          const taskContent = document.createElement('div');
+          taskContent.className = 'task-content';
+
+          const textSpan = document.createElement('span');
+          textSpan.className = 'task-text';
+          textSpan.textContent = task.text;
+
+          const priorityBadge = document.createElement('span');
+          priorityBadge.className = `priority-badge priority-${task.priority || 'medium'}-badge`;
+          const priorityLabels = { high: '高', medium: '中', low: '低' };
+          priorityBadge.textContent = priorityLabels[task.priority] || '中';
+
+          taskContent.appendChild(textSpan);
+          taskContent.appendChild(priorityBadge);
+
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'task-actions';
+
+          const editBtn = document.createElement('button');
+          editBtn.className = 'edit-btn';
+          editBtn.innerHTML = '✏️';
+          editBtn.setAttribute('aria-label', '编辑任务');
+          editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            enterEditMode(taskItem, task);
+          });
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.innerHTML = '🗑️';
+          deleteBtn.setAttribute('aria-label', '删除任务');
+          deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteTaskById(task.id);
+          });
+
+          actionsDiv.appendChild(editBtn);
+          actionsDiv.appendChild(deleteBtn);
+
+          taskItem.appendChild(checkbox);
+          taskItem.appendChild(taskContent);
+          taskItem.appendChild(actionsDiv);
+          taskListContainer.appendChild(taskItem);
+        });
+
+        updateStats();
+      }
+
+      // ---------- 进入编辑模式（包含标签优先级选择） ----------
+      function enterEditMode(taskItem, task) {
+        const taskContent = taskItem.querySelector('.task-content');
+        if (!taskContent) return;
+
+        const originalTextSpan = taskContent.querySelector('.task-text');
+        if (!originalTextSpan) return;
+
+        const editInput = document.createElement('input');
+        editInput.type = 'text';
+        editInput.className = 'edit-input';
+        editInput.value = task.text;
+
+        // 创建标签式优先级选择器
+        const editPriorityContainer = document.createElement('div');
+        editPriorityContainer.className = 'edit-priority-tags';
+        
+        const priorities = ['high', 'medium', 'low'];
+        const priorityLabels = { high: '🔴 高', medium: '⚡ 中', low: '🟢 低' };
+        let tempPriority = task.priority || 'medium';
+
+        priorities.forEach(p => {
+          const tag = document.createElement('span');
+          tag.className = 'edit-priority-tag';
+          tag.textContent = priorityLabels[p];
+          tag.dataset.priority = p;
+          if (p === tempPriority) {
+            tag.classList.add(`active-${p}`);
+            tag.style.background = p === 'high' ? '#fee2e2' : (p === 'medium' ? '#fef3c7' : '#d1fae5');
+            tag.style.color = p === 'high' ? '#b91c1c' : (p === 'medium' ? '#92400e' : '#065f46');
+            tag.style.borderColor = p === 'high' ? '#ef4444' : (p === 'medium' ? '#f59e0b' : '#10b981');
+          }
+          
+          tag.addEventListener('click', () => {
+            tempPriority = p;
+            const allTags = editPriorityContainer.querySelectorAll('.edit-priority-tag');
+            allTags.forEach(t => {
+              t.style.background = '#f1f5f9';
+              t.style.color = '#64748b';
+              t.style.borderColor = 'transparent';
+              t.classList.remove(`active-${t.dataset.priority}`);
+            });
+            tag.classList.add(`active-${p}`);
+            tag.style.background = p === 'high' ? '#fee2e2' : (p === 'medium' ? '#fef3c7' : '#d1fae5');
+            tag.style.color = p === 'high' ? '#b91c1c' : (p === 'medium' ? '#92400e' : '#065f46');
+            tag.style.borderColor = p === 'high' ? '#ef4444' : (p === 'medium' ? '#f59e0b' : '#10b981');
+          });
+          
+          editPriorityContainer.appendChild(tag);
+        });
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'edit-btn';
+        saveBtn.innerHTML = '💾';
+        saveBtn.style.color = '#10b981';
+        saveBtn.setAttribute('aria-label', '保存');
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'delete-btn';
+        cancelBtn.innerHTML = '❌';
+        cancelBtn.setAttribute('aria-label', '取消');
+
+        taskContent.innerHTML = '';
+        taskContent.appendChild(editInput);
+        taskContent.appendChild(editPriorityContainer);
+        
+        const tempActions = document.createElement('div');
+        tempActions.className = 'task-actions';
+        tempActions.appendChild(saveBtn);
+        tempActions.appendChild(cancelBtn);
+        
+        const originalActions = taskItem.querySelector('.task-actions');
+        if (originalActions) {
+          originalActions.style.display = 'none';
+        }
+
+        taskContent.appendChild(tempActions);
+        editInput.focus();
+
+        const saveEdit = () => {
+          const newText = editInput.value.trim();
+          if (newText === '') {
+            alert('任务内容不能为空');
+            return;
+          }
+          task.text = newText;
+          task.priority = tempPriority;
+          saveToLocalStorage();
+          renderTasks();
+        };
+
+        const cancelEdit = () => {
+          renderTasks();
+        };
+
+        saveBtn.addEventListener('click', saveEdit);
+        cancelBtn.addEventListener('click', cancelEdit);
+        
+        editInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            saveEdit();
+          }
+        });
+      }
+
+      function toggleTaskCompletion(taskId, isCompleted) {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          task.completed = isCompleted;
+          saveToLocalStorage();
+          renderTasks();
+        }
+      }
+
+      function deleteTaskById(taskId) {
+        tasks = tasks.filter(t => t.id !== taskId);
+        saveToLocalStorage();
+        renderTasks();
+      }
+
+      function addNewTask() {
+        const text = taskInput.value.trim();
+        if (text === '') {
+          taskInput.placeholder = '请输入任务内容～';
+          taskInput.classList.add('shake-animation');
+          setTimeout(() => {
+            taskInput.classList.remove('shake-animation');
+            taskInput.placeholder = '今天要做什么？';
+          }, 600);
+          taskInput.focus();
+          return;
+        }
+
+        const newTask = {
+          id: generateId(),
+          text: text,
+          completed: false,
+          priority: selectedPriority,
+        };
+
+        tasks.push(newTask);
+        saveToLocalStorage();
+        taskInput.value = '';
+        taskInput.focus();
+        renderTasks();
+      }
+
+      function clearCompletedTasks() {
+        const hasCompleted = tasks.some(task => task.completed);
+        if (!hasCompleted) {
+          alert('🎉 没有已完成的任务需要清空');
+          return;
+        }
+        tasks = tasks.filter(task => !task.completed);
+        saveToLocalStorage();
+        renderTasks();
+      }
+
+      function clearAllTasks() {
+        if (tasks.length === 0) {
+          alert('📋 任务列表已经是空的');
+          return;
+        }
+        const confirmed = confirm('⚠️ 确定要清空所有任务吗？此操作不可恢复！');
+        if (confirmed) {
+          tasks = [];
+          saveToLocalStorage();
+          renderTasks();
+        }
+      }
+
+      // ---------- 事件绑定 ----------
+      addBtn.addEventListener('click', addNewTask);
+      taskInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addNewTask();
+        }
+      });
+      clearCompletedBtn.addEventListener('click', clearCompletedTasks);
+      clearAllBtn.addEventListener('click', clearAllTasks);
+
+      const styleSheet = document.createElement("style");
+      styleSheet.textContent = `
+        .shake-animation {
+          animation: shake 0.3s ease-in-out;
+          border-color: #f472b6 !important;
+        }
+        @keyframes shake {
+          0%,100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          50% { transform: translateX(4px); }
+          75% { transform: translateX(-3px); }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+
+      // ---------- 初始化 ----------
+      loadFromLocalStorage();
+      updatePriorityTags();
+      renderTasks();
+    })();
+  </script>
+</body>
+</html>
